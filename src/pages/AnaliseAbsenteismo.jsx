@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// pages/AnaliseAbsenteismo.jsx
+import React, { useMemo, useState } from 'react';
 import Filtros from '../components/AnaliseAbsenteismo/Filtros';
 import VisaoGeral from '../components/AnaliseAbsenteismo/VisaoGeral';
 import DetalhamentoSetor from '../components/AnaliseAbsenteismo/DetalhamentoSetor';
@@ -15,8 +16,7 @@ const AnaliseAbsenteismo = () => {
     dataFim: ''
   });
 
-  const [dados, setDados] = useState({
-    // Dados mockados - substituir por API real
+  const [dados] = useState({
     taxaGeral: 8.2,
     fte: 156,
     setoresRisco: 3,
@@ -33,6 +33,7 @@ const AnaliseAbsenteismo = () => {
       "Setor Produção apresenta 45% acima da meta estabelecida",
       "Célula Embalagem no turno da noite tem 28% de absenteísmo"
     ],
+    // Série simples (Taxa x Meta) – permanece para compatibilidade
     evolucaoTemporal: [
       { mes: 'Jan', taxa: 7.8, meta: 6.0 },
       { mes: 'Fev', taxa: 8.1, meta: 6.0 },
@@ -40,6 +41,15 @@ const AnaliseAbsenteismo = () => {
       { mes: 'Abr', taxa: 8.2, meta: 6.0 },
       { mes: 'Mai', taxa: 7.9, meta: 6.0 },
       { mes: 'Jun', taxa: 8.2, meta: 6.0 }
+    ],
+    // ⬇️ NOVO: série multissetorial (chaves = nome dos setores)
+    evolucaoTemporalSetores: [
+      { mes: 'Jan', Produção: 10.8, Qualidade: 5.3, Logística: 8.4, Administrativo: 3.9, TI: 2.7, meta: 6.0 },
+      { mes: 'Fev', Produção: 11.2, Qualidade: 5.9, Logística: 9.1, Administrativo: 4.2, TI: 3.0, meta: 6.0 },
+      { mes: 'Mar', Produção: 12.5, Qualidade: 6.6, Logística: 10.2, Administrativo: 4.5, TI: 3.4, meta: 6.0 },
+      { mes: 'Abr', Produção: 11.9, Qualidade: 6.1, Logística: 9.6, Administrativo: 4.0, TI: 3.1, meta: 6.0 },
+      { mes: 'Mai', Produção: 10.7, Qualidade: 5.7, Logística: 9.0, Administrativo: 4.2, TI: 3.0, meta: 6.0 },
+      { mes: 'Jun', Produção: 11.3, Qualidade: 6.0, Logística: 9.5, Administrativo: 4.1, TI: 3.2, meta: 6.0 }
     ],
     ranking: {
       piores: [
@@ -54,17 +64,69 @@ const AnaliseAbsenteismo = () => {
     }
   });
 
+  const dadosFiltrados = useMemo(() => {
+  const setoresBase = dados.setores || [];
+  const setoresFiltrados = filtros.setor
+    ? setoresBase.filter(s => s.nome === filtros.setor)
+    : setoresBase;
+
+  const taxaGeral =
+    setoresFiltrados.length > 0
+      ? Number(
+          (
+            setoresFiltrados.reduce((acc, s) => acc + (s.taxa || 0), 0) /
+            setoresFiltrados.length
+          ).toFixed(1)
+        )
+      : 0;
+
+  const fte = setoresFiltrados.reduce((acc, s) => acc + (s.fte || 0), 0);
+
+  const setoresRisco = setoresFiltrados.reduce((acc, s) => acc + ((s.taxa || 0) > 8 ? 1 : 0), 0);
+
+  const temColabPorSetor = setoresFiltrados.every(
+    s => typeof s.colaboradoresAtivos === 'number'
+  );
+  const colaboradoresAtivos = temColabPorSetor
+    ? setoresFiltrados.reduce((acc, s) => acc + (s.colaboradoresAtivos || 0), 0)
+    : fte;
+
+  const ordenado = [...setoresFiltrados].sort((a, b) => b.taxa - a.taxa);
+  const toRankingItem = (s) => ({
+    setor: s.nome,
+    taxa: s.taxa,
+    fte: s.fte,
+    tendencia: s.taxa >= 9 ? 'alta' : s.taxa <= 4.5 ? 'baixa' : 'estavel'
+  });
+
+  const ranking = {
+    piores: ordenado.slice(0, 3).map(toRankingItem),
+    melhores: ordenado.slice(-2).map(toRankingItem).reverse()
+  };
+
+  return {
+    ...dados,
+    taxaGeral,
+    fte,
+    setoresRisco,
+    colaboradoresAtivos,
+    setores: setoresFiltrados,
+    ranking
+  };
+}, [dados, filtros]);
+
   const handleFiltroChange = (novosFiltros) => {
     setFiltros(novosFiltros);
-    // Aqui você faria a chamada para a API com os novos filtros
     console.log('Aplicando filtros:', novosFiltros);
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-gray-900">Análise de Absenteísmo</h1>
+      <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-[#5b24ca]">
+        <h1 className="text-3xl font-extrabold text-[#5b24ca] tracking-tight">
+          Análise de Absenteísmo
+        </h1>
         <p className="text-gray-600 mt-2">
           Monitoramento completo e análise detalhada do absenteísmo organizacional
         </p>
@@ -73,20 +135,19 @@ const AnaliseAbsenteismo = () => {
       {/* Filtros */}
       <Filtros filtros={filtros} onFiltroChange={handleFiltroChange} />
 
-      {/* Visão Geral */}
-      <VisaoGeral dados={dados} />
+      {/* Dados filtrados */}
+      <VisaoGeral dados={dadosFiltrados} />
+      <DetalhamentoSetor setores={dadosFiltrados.setores} />
 
-      {/* Detalhamento por Setor */}
-      <DetalhamentoSetor setores={dados.setores} />
+      {/* ⬇️ Passo a série multissetorial + setor selecionado */}
+      <CurvasTemporais
+        dadosEvolucao={dados.evolucaoTemporal}
+        dadosEvolucaoSetores={dados.evolucaoTemporalSetores}
+        setorSelecionado={filtros.setor}
+      />
 
-      {/* Curvas Temporais */}
-      <CurvasTemporais dadosEvolucao={dados.evolucaoTemporal} />
-
-      {/* Análise de Tendência */}
       <AnaliseTendencia insights={dados.insights} />
-
-      {/* Ranking */}
-      <Ranking ranking={dados.ranking} />
+      <Ranking ranking={dadosFiltrados.ranking} />
     </div>
   );
 };

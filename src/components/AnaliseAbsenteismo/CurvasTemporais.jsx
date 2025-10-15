@@ -1,4 +1,5 @@
-import React from 'react';
+// components/AnaliseAbsenteismo/CurvasTemporais.jsx
+import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,7 +12,6 @@ import {
   Legend,
 } from 'chart.js';
 
-// Registra os elementos necessários para o gráfico de linha
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -22,111 +22,137 @@ ChartJS.register(
   Legend
 );
 
-const GraficoEvolucaoPorSetor = () => {
-  // Dados mocados com a nova estrutura, incluindo os setores
-  const dadosMensais = [
-    { mes: 'Jul', producao: 8.1, vendas: 6.5, admin: 4.2, geral: 7.1, meta: 6.0 },
-    { mes: 'Ago', producao: 8.8, vendas: 7.0, admin: 4.5, geral: 7.8, meta: 6.0 },
-    { mes: 'Set', producao: 8.2, vendas: 6.8, admin: 5.0, geral: 7.5, meta: 6.0 },
-    { mes: 'Out', producao: 9.5, vendas: 7.2, admin: 4.8, geral: 8.1, meta: 6.0 },
-    { mes: 'Nov', producao: 7.5, vendas: 6.1, admin: 4.0, geral: 6.8, meta: 6.0 },
-    { mes: 'Dez', producao: 7.9, vendas: 6.5, admin: 4.3, geral: 7.0, meta: 6.0 },
+/**
+ * Espera:
+ * - dadosEvolucao: [{ mes, taxa, meta }]
+ * - dadosEvolucaoSetores: [{ mes, <Setor 1>: number, <Setor 2>: number, ..., meta: number }]
+ * - setorSelecionado: string | ''  (nome do setor, ex.: 'Produção')
+ */
+const CurvasTemporais = ({
+  dadosEvolucao = [],
+  dadosEvolucaoSetores = [],
+  setorSelecionado = ''
+}) => {
+  // Detecta nomes de séries de setor (todas as chaves, menos 'mes' e 'meta')
+  const nomesSetores = useMemo(() => {
+    if (!Array.isArray(dadosEvolucaoSetores) || dadosEvolucaoSetores.length === 0) return [];
+    const keys = Object.keys(dadosEvolucaoSetores[0] || {});
+    return keys.filter(k => k !== 'mes' && k !== 'meta');
+  }, [dadosEvolucaoSetores]);
+
+  // Paleta básica (pode trocar por uma lib de cores, se quiser)
+  const palette = [
+    'rgb(59, 130, 246)',   // azul
+    'rgb(34, 197, 94)',    // verde
+    'rgb(139, 92, 246)',   // roxo
+    'rgb(245, 158, 11)',   // amber
+    'rgb(236, 72, 153)',   // pink
+    'rgb(20, 184, 166)',   // teal
+    'rgb(239, 68, 68)',    // red
+    'rgb(99, 102, 241)',   // indigo
   ];
 
-  // Prepara os dados para o formato do Chart.js
-  const data = {
-    labels: dadosMensais.map(d => d.mes), // Eixo X com os meses
-    datasets: [
-      // Linha para o setor de Produção
-      {
-        label: 'Produção',
-        data: dadosMensais.map(d => d.producao),
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        tension: 0.1,
-      },
-      // Linha para o setor de Vendas
-      {
-        label: 'Vendas',
-        data: dadosMensais.map(d => d.vendas),
-        borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.5)',
-        tension: 0.1,
-      },
-      // Linha para o setor de Administração
-      {
-        label: 'Administração',
-        data: dadosMensais.map(d => d.admin),
-        borderColor: 'rgb(139, 92, 246)',
-        backgroundColor: 'rgba(139, 92, 246, 0.5)',
-        tension: 0.1,
-      },
-      // Linha para a TAXA GERAL (com maior destaque)
-      {
-        label: 'Taxa Geral',
-        data: dadosMensais.map(d => d.geral),
-        borderColor: 'rgb(239, 68, 68)',
-        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-        borderWidth: 3, // Linha mais grossa para destaque
-        tension: 0.1,
-      },
-      // Linha para a META (tracejada e mais sutil)
-      {
+  const chartData = useMemo(() => {
+    // Se temos série multissetorial, montamos datasets por setor
+    if (Array.isArray(dadosEvolucaoSetores) && dadosEvolucaoSetores.length > 0) {
+      const labels = dadosEvolucaoSetores.map(d => d.mes);
+
+      const setoresParaPlotar = setorSelecionado
+        ? nomesSetores.filter(n => n === setorSelecionado) // apenas o selecionado
+        : nomesSetores;                                     // todos os setores
+
+      const datasetsSetores = setoresParaPlotar.map((nome, idx) => ({
+        label: nome,
+        data: dadosEvolucaoSetores.map(d => d[nome]),
+        borderColor: palette[idx % palette.length],
+        backgroundColor: palette[idx % palette.length].replace('rgb', 'rgba').replace(')', ', 0.3)'),
+        borderWidth: setorSelecionado ? 3 : 2,
+        tension: 0.2
+      }));
+
+      const metaDataset = {
         label: 'Meta',
-        data: dadosMensais.map(d => d.meta),
+        data: dadosEvolucaoSetores.map(d => d.meta),
         borderColor: 'rgb(107, 114, 128)',
         backgroundColor: 'rgba(107, 114, 128, 0.5)',
-        borderDash: [5, 5], // Cria o efeito tracejado
+        borderDash: [5, 5],
         borderWidth: 2,
-        pointRadius: 0, // Remove os pontos da linha da meta
-      }
-    ]
-  };
+        pointRadius: 0,
+        tension: 0.2
+      };
 
-  // Configurações e customizações do gráfico
-  const options = {
+      return {
+        labels,
+        datasets: [...datasetsSetores, metaDataset]
+      };
+    }
+
+    // Fallback: usa a série simples (Taxa x Meta)
+    const labels = (dadosEvolucao || []).map(d => d.mes);
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Taxa',
+          data: (dadosEvolucao || []).map(d => d.taxa),
+          borderColor: 'rgb(239, 68, 68)',
+          backgroundColor: 'rgba(239, 68, 68, 0.5)',
+          borderWidth: 2,
+          tension: 0.2
+        },
+        {
+          label: 'Meta',
+          data: (dadosEvolucao || []).map(d => d.meta),
+          borderColor: 'rgb(107, 114, 128)',
+          backgroundColor: 'rgba(107, 114, 128, 0.5)',
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.2
+        }
+      ]
+    };
+  }, [dadosEvolucao, dadosEvolucaoSetores, nomesSetores, palette, setorSelecionado]);
+
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'top', // Posição da legenda
-      },
+      legend: { position: 'top' },
       title: {
         display: true,
-        text: 'Evolução do Absenteísmo por Setor (%)',
-        font: {
-          size: 18
-        }
+        text: setorSelecionado
+          ? `Evolução do Absenteísmo — ${setorSelecionado} (%)`
+          : 'Evolução do Absenteísmo por Setor (%)',
+        font: { size: 18 }
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
-            return `${context.dataset.label}: ${context.parsed.y}%`;
-          }
+          label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}%`
         }
       }
     },
     scales: {
       y: {
         beginAtZero: false,
-        suggestedMin: 3,
-        suggestedMax: 12,
+        suggestedMin: 0,
+        suggestedMax: 15,
         ticks: {
-          callback: function(value) {
-            return value.toFixed(1) + '%'; // Adiciona '%' e uma casa decimal
+          callback(value) {
+            return `${Number(value).toFixed(1)}%`;
           }
         }
       }
     }
-  };
+  }), [setorSelecionado]);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="h-96"> {/* Aumentei a altura para melhor visualização */}
-        <Line data={data} options={options} />
+      <div className="h-96">
+        <Line data={chartData} options={options} />
       </div>
     </div>
   );
 };
 
-export default GraficoEvolucaoPorSetor;
+export default CurvasTemporais;

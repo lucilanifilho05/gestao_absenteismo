@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children, requiredRole = 'any' }) => {
+  const { isAuthenticated, hasPermission, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -17,6 +17,11 @@ const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated) {
     // Redirecionar para o login, salvando a localização atual
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!hasPermission(requiredRole)) {
+    // Redirecionar para página de acesso negado ou dashboard
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;

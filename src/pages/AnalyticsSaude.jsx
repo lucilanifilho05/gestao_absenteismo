@@ -139,8 +139,10 @@ const AnalyticsSaude = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-bold text-gray-900">Analytics Saúde Organizacional</h1>
+      <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-[#5b24ca]">
+        <h1 className="text-3xl font-extrabold text-[#5b24ca] tracking-tight">
+          Análise de Saúde Organizacional
+        </h1>
         <p className="text-gray-600 mt-2">
           Monitoramento proativo do bem-estar e saúde mental dos colaboradores
         </p>

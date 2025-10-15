@@ -26,15 +26,38 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       // Simulação de API de login - substituir por chamada real
-      if (email === 'admin@empresa.com' && password === 'admin123') {
-        const userData = {
+      const users = {
+        'admin@empresa.com': {
           id: 1,
           name: 'Administrador',
-          email: email,
+          email: 'admin@empresa.com',
           role: 'admin',
-          avatar: '👤'
-        };
-        
+          avatar: '👤',
+          setor: 'Gestão',
+          cargo: 'Administrador do Sistema'
+        },
+        'joao.silva@empresa.com': {
+          id: 2,
+          name: 'João Silva',
+          email: 'joao.silva@empresa.com',
+          role: 'colaborador',
+          avatar: '👨‍💼',
+          setor: 'Produção',
+          cargo: 'Operador de Máquinas'
+        },
+        'maria.santos@empresa.com': {
+          id: 3,
+          name: 'Maria Santos',
+          email: 'maria.santos@empresa.com',
+          role: 'colaborador',
+          avatar: '👩‍💼',
+          setor: 'Qualidade',
+          cargo: 'Analista de Qualidade'
+        }
+      };
+
+      if (users[email] && password === '123456') {
+        const userData = users[email];
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         return { success: true };
@@ -51,12 +74,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const hasPermission = (requiredRole) => {
+    if (!user) return false;
+    if (requiredRole === 'any') return true;
+    return user.role === requiredRole;
+  };
+
   const value = {
     user,
     login,
     logout,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    hasPermission
   };
 
   return (
