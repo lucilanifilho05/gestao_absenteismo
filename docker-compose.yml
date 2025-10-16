@@ -1,7 +1,5 @@
-
 version: '3.8'
-
-services:  
+services:
   gestao-absenteismo:
     container_name: gestao-absenteismo-prod
     build: .
