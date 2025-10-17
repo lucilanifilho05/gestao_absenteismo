@@ -9,12 +9,18 @@ const ADMIN_NAV_ITEMS = [
   { id: "gestao-ausencias", label: "Gestão de Ausências", path: "/gestao-ausencias", icon: UsersIcon },
   { id: "risk-scoring", label: "Risk Scoring", path: "/risk-scoring", icon: TargetIcon },
   { id: "analytics-saude", label: "Analytics Saúde", path: "/analytics-saude", icon: HeartIcon },
+  { id: "incentivos-admin", label: "Incentivos", path: "/incentivos-admin", icon: TrophyIcon },
 ];
 
 // Menu para Colaborador
 const COLABORADOR_NAV_ITEMS = [
   { id: "meu-painel", label: "Meu Painel", path: "/meu-painel", icon: DashboardIcon },
   { id: "minhas-ausencias", label: "Minhas Ausências", path: "/minhas-ausencias", icon: UsersIcon },
+  { id: "pulso-semanal", label: "Pulso Semanal", path: "/pulso-semanal", icon: PulseIcon },
+  { id: "bem-estar", label: "Bem-Estar", path: "/meu-wellbeing", icon: HeartIcon },
+  { id: "espaco-cuidar", label: "Espaço Cuidar", path: "/espaco-cuidar", icon: BookIcon },
+  { id: "canal-direto", label: "Canal Direto", path: "/canal-direto", icon: LockIcon },
+  { id: "incentivos", label: "Incentivos", path: "/incentivos-colaborador", icon: TrophyIcon },
 ];
 
 export default function Sidebar() {
@@ -335,6 +341,38 @@ function PlusIcon(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+  );
+}
+function PulseIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h4l2-6 4 12 2-6h4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".2" />
+    </svg>
+  );
+}
+function LockIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" {...props}>
+      <rect x="4" y="10" width="16" height="10" rx="2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 10V7a4 4 0 118 0v3" />
+    </svg>
+  );
+}
+function BookIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a2 2 0 012-2h11a3 3 0 013 3v13a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h9" />
+    </svg>
+  );
+}
+function TrophyIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8M9 17h6M7 4h10v3a5 5 0 01-10 0V4z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 6H3a3 3 0 003 3M19 6h2a3 3 0 01-3 3" />
     </svg>
   );
 }

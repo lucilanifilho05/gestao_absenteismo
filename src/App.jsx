@@ -13,6 +13,12 @@ import Dashboard from './pages/Dashboard';
 import Unauthorized from './pages/Unauthorized';
 import MeuPainel from './pages/MeuPainel';
 import MinhasAusencias from './pages/MinhasAusencias';
+import PulsoSemanal from './pages/PulsoSemanal';
+import BemEstar from './pages/BemEstar';
+import CanalDireto from './pages/CanalDireto';
+import EspacoCuidar from './pages/EspacoCuidar';
+import IncentivosAdmin from './pages/IncentivosAdmin';
+import IncentivosColaborador from './pages/IncentivosColaborador';
 
 // Componente para rotas públicas quando autenticado
 const PublicRoute = ({ children }) => {
@@ -91,6 +97,14 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/incentivos-admin" element={
+            <ProtectedRoute requiredRole="admin">
+              <Layout>
+                <IncentivosAdmin />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
           {/* Rotas exclusivas para Colaborador */}
           <Route path="/meu-painel" element={
             <ProtectedRoute requiredRole="colaborador">
@@ -104,6 +118,46 @@ function App() {
             <ProtectedRoute requiredRole="colaborador">
               <Layout>
                 <MinhasAusencias />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/pulso-semanal" element={
+            <ProtectedRoute requiredRole="colaborador">
+              <Layout>
+                <PulsoSemanal />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/meu-wellbeing" element={
+            <ProtectedRoute requiredRole="colaborador">
+              <Layout>
+                <BemEstar />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/canal-direto" element={
+            <ProtectedRoute requiredRole="colaborador">
+              <Layout>
+                <CanalDireto />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/espaco-cuidar" element={
+            <ProtectedRoute requiredRole="colaborador">
+              <Layout>
+                <EspacoCuidar />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/incentivos-colaborador" element={
+            <ProtectedRoute requiredRole="colaborador">
+              <Layout>
+                <IncentivosColaborador />
               </Layout>
             </ProtectedRoute>
           } />
